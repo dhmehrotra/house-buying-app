@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "name": "buyhome-abc-to-xyz",
+  "alias": ["buyhomeabc.xyz", "www.buyhomeabc.xyz"],
+  "routes": [{ "src": "/(.*)", "dest": "/$1" }],
+  "github": {
+    "silent": true
+  }
+}
