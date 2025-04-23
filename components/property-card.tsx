@@ -2,7 +2,7 @@
 
 import { memo } from "react"
 import Image from "next/image"
-import { Calendar, CheckCircle, Eye, FileText, PenTool, Send, Trash2, Video, BarChart } from "lucide-react"
+import { Calendar, CheckCircle, Eye, FileText, Send, Trash2, Video, BarChart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -61,6 +61,7 @@ interface PropertyCardProps {
   onUpdateNotes?: (id: string, notes: string) => void
   onSubmitOffer?: (id: string) => void
   onRestore?: (id: string) => void
+  onProceedToOfferSubmission?: (id: string) => void
 }
 
 // Format price helper
@@ -84,6 +85,7 @@ export const PropertyCard = memo(function PropertyCard({
   onUpdateNotes,
   onSubmitOffer,
   onRestore,
+  onProceedToOfferSubmission,
 }: PropertyCardProps) {
   // Get property state from store
   const {
@@ -125,7 +127,6 @@ export const PropertyCard = memo(function PropertyCard({
           <Image
             src={property.photos[0] || "/placeholder.svg?height=200&width=300"}
             alt={property.address.full}
-            fill
             className="object-cover"
           />
         </div>
@@ -302,13 +303,8 @@ export const PropertyCard = memo(function PropertyCard({
                   Review Disclosures
                 </Button>
 
-                <Button variant="outline" size="sm" className="flex items-center rounded shadow-sm">
-                  <PenTool className="h-4 w-4 mr-1" />
-                  Determine Offer
-                </Button>
-
                 <Button
-                  variant="accent"
+                  variant="outline"
                   size="sm"
                   className="flex items-center rounded shadow-sm"
                   onClick={() => onSubmitOffer && onSubmitOffer(property.id)}
@@ -319,7 +315,6 @@ export const PropertyCard = memo(function PropertyCard({
               </div>
             </div>
           )}
-
           {section === "offerSubmitted" && (
             <div className="mt-3">
               <div className="flex items-center justify-between">
@@ -344,6 +339,13 @@ export const PropertyCard = memo(function PropertyCard({
                 <Button variant="outline" size="sm" className="flex items-center rounded shadow-sm">
                   <FileText className="h-4 w-4 mr-1" />
                   View Offer Details
+                </Button>
+                <Button variant="outline" size="sm" className="flex items-center rounded shadow-sm">
+                  <FileText className="h-4 w-4 mr-1" />
+                  Review Disclosures
+                </Button>
+                <Button variant="outline" size="sm" className="flex items-center rounded shadow-sm">
+                  Proceed to Offer Submission
                 </Button>
               </div>
 
