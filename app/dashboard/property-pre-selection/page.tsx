@@ -1,19 +1,19 @@
 "use client"
 
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { FileText, MessageSquare, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useToast } from "@/components/ui/use-toast"
 import { useUser } from "@/contexts/user-context"
 import { PropertyCard, type BuyerProperty, type Property } from "@/components/property-card"
 import { usePropertyStateStore } from "./property-state-store"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Helper function to ensure unique IDs
 function ensureUniqueIds<T extends { id: string }>(items: T[]): T[] {
@@ -38,7 +38,7 @@ export default function PropertySelectionPage() {
   const { toast } = useToast()
 
   // Get property state store
-  const { selectedMap, resetPropertyState, getDebugState } = usePropertyStateStore()
+  const { selectedMap, resetPropertyState, toggleSelection: togglePropertySelectionStore } = usePropertyStateStore()
 
   // State for properties in different stages
   const [savedProperties, setSavedProperties] = useState<BuyerProperty[]>([])
@@ -57,6 +57,12 @@ export default function PropertySelectionPage() {
 
   // State for showing only active listings in archived
   const [showOnlyActive, setShowOnlyActive] = useState(true)
+
+  // State for selected properties in saved tab
+  const [selectedSavedProperties, setSelectedSavedProperties] = useState<string[]>([])
+
+  // State for selected properties in viewingRequested tab
+  const [selectedViewingRequestedProperties, setSelectedViewingRequestedProperties] = useState<string[]>([])
 
   // Load properties from localStorage on component mount
   useEffect(() => {
@@ -183,11 +189,19 @@ export default function PropertySelectionPage() {
     }
 
     localStorage.setItem("buyhome_property_workflow", JSON.stringify(workflowData))
-  }, [savedProperties, viewingRequested, viewingScheduled, propertiesViewed, offerSubmitted, archivedProperties])
+  }, [savedProperties, viewingRequested, viewingScheduled, propertiesViewed, archivedProperties])
 
   // Toggle property selection
-  const togglePropertySelection = useCallback((propertyId: string) => {
-    // Note: The actual toggle happens in the PropertyCard component
+  const handleToggleSelection = useCallback((propertyId: string, section: string) => {
+    if (section === "saved") {
+      setSelectedSavedProperties((prev) =>
+        prev.includes(propertyId) ? prev.filter((id) => id !== propertyId) : [...prev, propertyId],
+      )
+    } else if (section === "viewingRequested") {
+      setSelectedViewingRequestedProperties((prev) =>
+        prev.includes(propertyId) ? prev.filter((id) => id !== propertyId) : [...prev, propertyId],
+      )
+    }
   }, [])
 
   // Request property analysis
@@ -199,8 +213,6 @@ export default function PropertySelectionPage() {
         console.error(`[ERROR] Property ${propertyId} not found`)
         return
       }
-
-      // Note: The actual state update happens in the PropertyCard component
 
       // Show toast notification
       toast({
@@ -229,8 +241,6 @@ export default function PropertySelectionPage() {
         return
       }
 
-      // Note: The actual state update happens in the PropertyCard component
-
       // Show toast notification
       toast({
         title: "Virtual Tour Requested",
@@ -240,80 +250,6 @@ export default function PropertySelectionPage() {
     },
     [activeSection, savedProperties, propertiesViewed, toast],
   )
-
-  // Request viewing for selected properties
-  const scheduleInPersonTour = useCallback(() => {
-    const selectedProps = savedProperties.filter((prop) => selectedMap.get(prop.id))
-
-    if (selectedProps.length === 0) {
-      toast({
-        title: "No properties selected",
-        description: "Please select at least one property to schedule an in-person tour.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Move selected properties to viewing requested
-    const updatedSelected = selectedProps.map((prop) => ({
-      ...prop,
-      buyerStatus: "viewing-requested",
-      viewingStatus: "pending",
-    })) as BuyerProperty[]
-
-    setViewingRequested((prev) => [...prev, ...updatedSelected])
-
-    // Remove from saved properties
-    setSavedProperties((prev) => prev.filter((prop) => !selectedMap.get(prop.id)))
-
-    // Reset selection state for moved properties
-    selectedProps.forEach((prop) => {
-      resetPropertyState(prop.id)
-    })
-
-    toast({
-      title: "Tour Requested",
-      description: `In-person tour requested for ${selectedProps.length} properties.`,
-      variant: "default",
-    })
-  }, [savedProperties, selectedMap, resetPropertyState, toast])
-
-  // Withdraw viewing request
-  const withdrawViewingRequest = useCallback(() => {
-    const selectedProps = viewingRequested.filter((prop) => selectedMap.get(prop.id))
-
-    if (selectedProps.length === 0) {
-      toast({
-        title: "No properties selected",
-        description: "Please select at least one property to withdraw the viewing request.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Move selected properties back to saved
-    const updatedSelected = selectedProps.map((prop) => ({
-      ...prop,
-      buyerStatus: "saved",
-      viewingStatus: undefined,
-    })) as BuyerProperty[]
-
-    setSavedProperties((prev) => [...prev, ...updatedSelected])
-
-    // Remove from viewing requested
-    setViewingRequested((prev) => prev.filter((prop) => !selectedMap.get(prop.id)))
-
-    // Reset selection state for moved properties
-    selectedProps.forEach((prop) => {
-      resetPropertyState(prop.id)
-    })
-
-    toast({
-      title: "Request withdrawn",
-      description: `Viewing request withdrawn for ${selectedProps.length} properties.`,
-      variant: "default",
-    })
-  }, [viewingRequested, selectedMap, resetPropertyState, toast])
 
   // Mark property as viewed
   const markAsViewed = useCallback(
@@ -537,6 +473,110 @@ export default function PropertySelectionPage() {
     setAiMessage("")
   }, [aiMessage, toast])
 
+  const handleScheduleInPersonTour = () => {
+    // Get selected properties
+    const selectedProps = savedProperties.filter((prop) => selectedSavedProperties.includes(prop.id))
+
+    if (selectedProps.length === 0) {
+      toast({
+        title: "No properties selected",
+        description: "Please select at least one property to schedule a tour.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Move selected properties to viewing requested
+    const updatedSelected = selectedProps.map((prop) => ({
+      ...prop,
+      buyerStatus: "viewing-requested",
+      viewingStatus: "pending",
+    })) as BuyerProperty[]
+
+    setViewingRequested((prev) => [...prev, ...updatedSelected])
+
+    // Remove from saved properties
+    setSavedProperties((prev) => prev.filter((prop) => !selectedSavedProperties.includes(prop.id)))
+
+    // Reset selection state
+    setSelectedSavedProperties([])
+
+    toast({
+      title: "Tour Requested",
+      description: `Tour requested for ${selectedProps.length} properties.`,
+      variant: "default",
+    })
+  }
+
+  const handleMarkScheduled = () => {
+    // Get selected properties
+    const selectedProps = viewingRequested.filter((prop) => selectedViewingRequestedProperties.includes(prop.id))
+
+    if (selectedProps.length === 0) {
+      toast({
+        title: "No properties selected",
+        description: "Please select at least one property to mark as scheduled.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Move selected properties to viewing scheduled
+    const updatedSelected = selectedProps.map((prop) => ({
+      ...prop,
+      buyerStatus: "viewing-scheduled",
+      viewingStatus: "confirmed",
+    })) as BuyerProperty[]
+
+    setViewingScheduled((prev) => [...prev, ...updatedSelected])
+
+    // Remove from viewing requested
+    setViewingRequested((prev) => prev.filter((prop) => !selectedViewingRequestedProperties.includes(prop.id)))
+
+    // Reset selection state
+    setSelectedViewingRequestedProperties([])
+
+    toast({
+      title: "Tour Scheduled",
+      description: `Tour scheduled for ${selectedProps.length} properties.`,
+      variant: "default",
+    })
+  }
+
+  const handleWithdrawRequest = () => {
+    // Get selected properties
+    const selectedProps = viewingRequested.filter((prop) => selectedViewingRequestedProperties.includes(prop.id))
+
+    if (selectedProps.length === 0) {
+      toast({
+        title: "No properties selected",
+        description: "Please select at least one property to withdraw the viewing request.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const updatedSelected = selectedProps.map((prop) => ({
+      ...prop,
+      buyerStatus: "archived",
+      viewingStatus: undefined,
+    })) as BuyerProperty
+
+    setArchivedProperties((prev) => [...prev, ...updatedSelected])
+
+    // Remove from viewing requested
+    setViewingRequested((prev) => prev.filter((prop) => !selectedViewingRequestedProperties.includes(prop.id)))
+
+    // Reset selection state
+    setSelectedViewingRequestedProperties([])
+
+    toast({
+      title: "Request withdrawn",
+      description: `Viewing request withdrawn for ${selectedProps.length} properties.`,
+      variant: "default",
+    })
+  }
+
   return (
     <div className="container mx-auto">
       <div className="flex flex-col md:flex-row gap-6">
@@ -562,7 +602,7 @@ export default function PropertySelectionPage() {
                 Viewed ({propertiesViewed.length})
               </TabsTrigger>
               <TabsTrigger value="offerSubmitted" className="text-xs md:text-sm">
-                Offers ({offerSubmitted.length})
+                Pre-Offer ({offerSubmitted.length})
               </TabsTrigger>
               <TabsTrigger value="archived" className="text-xs md:text-sm">
                 Archived ({archivedProperties.length})
@@ -576,10 +616,10 @@ export default function PropertySelectionPage() {
                   <Button
                     variant="accent"
                     size="sm"
-                    disabled={savedProperties.filter((prop) => selectedMap.get(prop.id)).length === 0}
-                    onClick={scheduleInPersonTour}
+                    disabled={selectedSavedProperties.length === 0}
+                    onClick={handleScheduleInPersonTour}
                   >
-                    Schedule In-person Tour
+                    Schedule In-Person Tour
                   </Button>
                 </div>
               </div>
@@ -598,7 +638,7 @@ export default function PropertySelectionPage() {
                       key={property.id}
                       property={property}
                       section="saved"
-                      onToggleSelection={togglePropertySelection}
+                      onToggleSelection={handleToggleSelection}
                       onArchive={archiveProperty}
                       onRequestAnalysis={requestPropertyAnalysis}
                       onRequestVirtualTour={requestVirtualTour}
@@ -611,14 +651,24 @@ export default function PropertySelectionPage() {
             <TabsContent value="viewingRequested">
               <div className="mb-4 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Viewings Requested</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={viewingRequested.filter((prop) => selectedMap.get(prop.id)).length === 0}
-                  onClick={withdrawViewingRequest}
-                >
-                  Withdraw Request
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedViewingRequestedProperties.length === 0}
+                    onClick={handleMarkScheduled}
+                  >
+                    Mark Scheduled
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedViewingRequestedProperties.length === 0}
+                    onClick={handleWithdrawRequest}
+                  >
+                    Withdraw Request
+                  </Button>
+                </div>
               </div>
 
               {viewingRequested.length === 0 ? (
@@ -632,7 +682,7 @@ export default function PropertySelectionPage() {
                       key={property.id}
                       property={property}
                       section="viewingRequested"
-                      onToggleSelection={togglePropertySelection}
+                      onToggleSelection={handleToggleSelection}
                       onArchive={archiveProperty}
                     />
                   ))}
@@ -693,7 +743,7 @@ export default function PropertySelectionPage() {
 
             <TabsContent value="offerSubmitted">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold">Properties with Offers</h2>
+                <h2 className="text-xl font-semibold">Pre-Offer</h2>
               </div>
 
               {offerSubmitted.length === 0 ? (
@@ -813,10 +863,10 @@ export default function PropertySelectionPage() {
 
               <div className="flex gap-2 mb-3">
                 <Button variant="outline" size="sm" className="text-xs">
-                  How do I evaluate a home's value?
+                  What are the key factors in selecting a property?
                 </Button>
                 <Button variant="outline" size="sm" className="text-xs">
-                  What are red flags in a disclosure?
+                  How do I determine the right offer price?
                 </Button>
               </div>
 
@@ -851,6 +901,7 @@ export default function PropertySelectionPage() {
                 rows={4}
               />
               <Button onClick={sendRealtorMessage} className="w-full" variant="accent">
+                <Send className="h-4 w-4 mr-2" />
                 Send Message
               </Button>
             </CardContent>

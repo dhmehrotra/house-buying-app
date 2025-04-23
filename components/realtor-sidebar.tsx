@@ -2,10 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, LogOut, PlusCircle, Settings, Users } from "lucide-react"
+import { Building2, Home, LogOut, PlusCircle, Settings, Users } from "lucide-react"
 import { useRealtor } from "@/contexts/realtor-context"
 import { useRouter } from "next/navigation"
-import Logo from "@/components/logo"
 
 export function RealtorSidebar() {
   const pathname = usePathname()
@@ -46,7 +45,14 @@ export function RealtorSidebar() {
     <div className="w-64 bg-white border-r flex flex-col h-full">
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
-          <Logo />
+          <Building2 className="h-6 w-6 text-primary" />
+          <div>
+            <div className="font-medium text-primary">
+              <span className="font-normal">BuyHome</span> <span className="font-bold text-accent">ABC</span>{" "}
+              <span className="font-normal">to</span> <span className="font-bold text-primary">XYZ</span>
+            </div>
+            <div className="text-xs text-muted-foreground">Realtor Portal</div>
+          </div>
         </div>
       </div>
 

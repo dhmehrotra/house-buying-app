@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { Linkedin } from "lucide-react"
-import { LogoImage } from "@/components/logo-image"
+import { Building2, Linkedin } from "lucide-react"
 
 export function Footer() {
   return (
@@ -9,7 +8,10 @@ export function Footer() {
         <div className="border-b border-gray-700 pb-8 mb-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <LogoImage />
+              <Building2 className="h-6 w-6 mr-2 text-[#ff6a00]" />
+              <span className="text-xl footer-brand">
+                BuyHome <span className="footer-brand-highlight">ABC</span> to <span className="font-medium">XYZ</span>
+              </span>
             </div>
 
             <div className="footer-text text-sm text-gray-300 max-w-2xl">

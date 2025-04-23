@@ -12,8 +12,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HeroImage } from "@/components/hero-image"
+import { LogoImage } from "@/components/logo-image"
 import { Footer } from "@/components/footer"
-import { LogoImage as Logo } from "@/components/logo-image"
 
 export default function HomePage() {
   return (
@@ -22,7 +22,11 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Logo />
+            <LogoImage />
+            <span className="font-bold text-xl">
+              <span className="font-normal">BuyHome</span> <span className="font-bold text-accent">ABC</span>{" "}
+              <span className="font-normal">to</span> <span className="font-bold text-primary">XYZ</span>
+            </span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <Link href="#how-it-works" className="text-sm font-medium hover:underline">
@@ -57,7 +61,7 @@ export default function HomePage() {
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-primary mb-4">
                 The Smarter Way to Buy a Home
               </h1>
-              <p className="text-xl text-foreground/80 mb-8">Your complete home buying journey—from ABC to XYZ.</p>
+              <p className="text-xl text-foreground/80 mb-8">With your agent. Powered by AI.</p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/signup?role=buyer">
                   <Button size="lg" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white">

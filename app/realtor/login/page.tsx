@@ -3,6 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
+import { Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -11,7 +12,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRealtor, getMockRealtorByEmail } from "@/contexts/realtor-context"
-import Logo from "@/components/logo"
 
 export default function RealtorLoginPage() {
   const router = useRouter()
@@ -82,7 +82,11 @@ export default function RealtorLoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
       <div className="flex items-center gap-2 mb-8">
-        <Logo />
+        <Building2 className="h-6 w-6 text-primary" />
+        <span className="text-xl">
+          <span className="font-normal">BuyHome</span> <span className="font-bold text-accent">ABC</span>{" "}
+          <span className="font-normal">to</span> <span className="font-bold text-primary">XYZ</span>
+        </span>
       </div>
       <Card className="w-full max-w-md">
         <form onSubmit={handleSubmit}>

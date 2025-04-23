@@ -29,7 +29,7 @@ export function middleware(request: NextRequest) {
   const isBuyerPath = path === "/dashboard" || path.startsWith("/dashboard/")
 
   // Realtor-specific paths
-  const isRealtorPath = path === "/realtor-dashboard" || path.startsWith("/realtor/")
+  const isRealtorPath = path === "/realtor/dashboard" || path.startsWith("/realtor/")
 
   // If the path is public, allow access
   if (isPublicPath) {
@@ -51,5 +51,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
 }

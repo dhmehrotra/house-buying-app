@@ -23,8 +23,8 @@ const config = {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       colors: {
-        primary: "#002642",
-        accent: "#EF8354",
+        primary: "#002642", // Deep navy blue
+        accent: "#FF7F2A", // Orange
         white: "#FFFFFF",
         background: "#FFFFFF",
         foreground: "#1F2937",

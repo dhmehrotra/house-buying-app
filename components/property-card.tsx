@@ -53,7 +53,7 @@ export type BuyerProperty = Property & {
 interface PropertyCardProps {
   property: BuyerProperty
   section: string
-  onToggleSelection?: (id: string) => void
+  onToggleSelection?: (id: string, section: string) => void
   onArchive?: (id: string) => void
   onRequestAnalysis?: (id: string) => void
   onRequestVirtualTour?: (id: string) => void
@@ -103,7 +103,7 @@ export const PropertyCard = memo(function PropertyCard({
   // Handle selection toggle
   const handleToggleSelection = () => {
     toggleSelection(property.id)
-    if (onToggleSelection) onToggleSelection(property.id)
+    if (onToggleSelection) onToggleSelection(property.id, section)
   }
 
   // Handle analysis request
@@ -313,8 +313,8 @@ export const PropertyCard = memo(function PropertyCard({
                   className="flex items-center rounded shadow-sm"
                   onClick={() => onSubmitOffer && onSubmitOffer(property.id)}
                 >
+                  Consider for Offer
                   <Send className="h-4 w-4 mr-1" />
-                  Submit Bid
                 </Button>
               </div>
             </div>

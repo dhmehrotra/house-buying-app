@@ -5,9 +5,6 @@ import { RealtorProvider } from "@/contexts/realtor-context"
 import { UserProvider } from "@/contexts/user-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Inter } from "next/font/google"
-
-const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "BuyHome ABC to XYZ",
@@ -30,7 +27,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/favicon.png" />
       </head>
-      <body className={inter.className + " min-h-screen flex flex-col"}>
+      <body className="min-h-screen flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <RealtorProvider>
             <UserProvider>

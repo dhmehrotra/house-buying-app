@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff } from "lucide-react"
+import { Building2, Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,7 +15,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { useUser } from "@/contexts/user-context"
 import { useRealtor } from "@/contexts/realtor-context"
-import Logo from "@/components/logo"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -167,7 +166,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#F9FAFB] p-4">
       <div className="flex items-center gap-2 mb-8">
-        <Logo />
+        <Building2 className="h-6 w-6 text-primary" />
+        <span className="text-xl">
+          <span className="font-normal">BuyHome</span> <span className="font-bold text-accent">ABC</span>{" "}
+          <span className="font-normal">to</span> <span className="font-bold text-primary">XYZ</span>
+        </span>
       </div>
 
       <Card className="w-full max-w-md">

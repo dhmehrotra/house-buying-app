@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  Building2,
   CheckCircle,
   ClipboardCheck,
   FileSearch,
@@ -26,7 +27,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import Logo from "@/components/logo"
 
 // Define the step data without completion status
 const buyerStepData = [
@@ -156,7 +156,11 @@ export function BuyerSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-4 py-2">
-          <Logo />
+          <Building2 className="h-6 w-6 text-primary" />
+          <span>
+            <span className="font-normal">BuyHome</span> <span className="font-bold text-accent">ABC</span>{" "}
+            <span className="font-normal">to</span> <span className="font-bold text-primary">XYZ</span>
+          </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
