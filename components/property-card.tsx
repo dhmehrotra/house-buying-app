@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { usePropertyStateStore } from "@/app/dashboard/property-pre-selection/property-state-store"
-import { useToast } from "@/components/ui/use-toast"
 
 // Property type definition
 export type Property = {
@@ -48,7 +47,6 @@ export type BuyerProperty = Property & {
   agentNotes?: string
   offerStatus?: "submitted" | "countered" | "accepted" | "rejected"
   offerAmount?: number
-  showSubmittedPill?: boolean
 }
 
 // Property card props
@@ -98,8 +96,6 @@ export const PropertyCard = memo(function PropertyCard({
     setAnalysisRequested,
     setVirtualTourRequested,
   } = usePropertyStateStore()
-
-  const { toast } = useToast()
 
   // Local state for this specific property
   const isSelected = selectedMap.get(property.id) || false
@@ -322,25 +318,24 @@ export const PropertyCard = memo(function PropertyCard({
           {section === "offerSubmitted" && (
             <div className="mt-3">
               <div className="flex items-center justify-between">
-                {property.showSubmittedPill && (
-                  <Badge
-                    variant={
-                      property.offerStatus === "accepted"
-                        ? "accent"
-                        : property.offerStatus === "rejected"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                  >
-                    {property.offerStatus === "submitted"
-                      ? "Submitted"
-                      : property.offerStatus === "countered"
-                        ? "Countered"
-                        : property.offerStatus === "accepted"
-                          ? "Accepted"
-                          : "Rejected"}
-                  </Badge>
-                )}
+                <Badge
+                  variant={
+                    property.offerStatus === "accepted"
+                      ? "accent"
+                      : property.offerStatus === "rejected"
+                        ? "destructive"
+                        : "secondary"
+                  }
+                >
+                  {property.offerStatus === "submitted"
+                    ? "Submitted"
+                    : property.offerStatus === "countered"
+                      ? "Countered"
+                      : property.offerStatus === "accepted"
+                        ? "Accepted"
+                        : "Rejected"}
+                </Badge>
+
                 <Button variant="outline" size="sm" className="flex items-center rounded shadow-sm">
                   <FileText className="h-4 w-4 mr-1" />
                   View Offer Details

@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { BuyerSidebar } from "@/components/buyer-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { useUser } from "@/contexts/user-context"
-import { LogOut } from "lucide-react"
+import { LogOut, ArrowLeft, ArrowRight } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function DashboardLayout({
   children,
@@ -53,6 +54,9 @@ export default function DashboardLayout({
   if (isLoading || !user) {
     return null
   }
+
+  // Determine if we're on the property selection page
+  const isPropertySelectionPage = pathname === "/dashboard/property-pre-selection"
 
   return (
     <SidebarProvider>
@@ -96,6 +100,23 @@ export default function DashboardLayout({
           </div>
         </header>
         <main className="flex-1 overflow-auto p-6 bg-[#F9FAFB]">{children}</main>
+        {/* Conditional rendering of navigation buttons */}
+        {isPropertySelectionPage && (
+          <footer className="flex justify-between items-center p-6 bg-white border-t">
+            <Button asChild variant="outline">
+              <Link href="/dashboard/property-search" className="flex items-center">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Previous: Property Search
+              </Link>
+            </Button>
+            <Button asChild className="bg-accent hover:bg-accent/90 text-white">
+              <Link href="/dashboard/offer-negotiation" className="flex items-center">
+                Next: Offer & Negotiation
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </footer>
+        )}
       </SidebarInset>
     </SidebarProvider>
   )

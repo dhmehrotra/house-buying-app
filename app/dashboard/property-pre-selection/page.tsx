@@ -110,11 +110,8 @@ export default function PropertySelectionPage() {
         const viewingRequestedProps = ensureUniqueIds(parsedData.viewingRequested || [])
         const viewingScheduledProps = ensureUniqueIds(parsedData.viewingScheduled || [])
         const viewedProps = ensureUniqueIds(parsedData.viewed || [])
-        let offerSubmittedProps = ensureUniqueIds(parsedData.offerSubmitted || [])
-        offerSubmittedProps = offerSubmittedProps.map((prop) => ({ ...prop, showSubmittedPill: false }))
+        const offerSubmittedProps = ensureUniqueIds(parsedData.offerSubmitted || [])
         const archivedProps = ensureUniqueIds(parsedData.archived || [])
-
-        offerSubmittedProps = offerSubmittedProps.map((prop) => ({ ...prop, showSubmittedPill: false }))
 
         // Update state with all properties
         setSavedProperties(combinedSavedProps)
@@ -173,7 +170,6 @@ export default function PropertySelectionPage() {
       buyerStatus: "saved",
       buyerNotes: "",
       agentNotes: "",
-      showSubmittedPill: false,
     }))
 
     // Ensure unique IDs
@@ -541,8 +537,8 @@ export default function PropertySelectionPage() {
     setSelectedViewingRequestedProperties([])
 
     toast({
-      title: "Request withdrawn",
-      description: `Viewing request withdrawn for ${selectedProps.length} properties.`,
+      title: "Tour Scheduled",
+      description: `Tour scheduled for ${selectedProps.length} properties.`,
       variant: "default",
     })
   }
@@ -554,13 +550,21 @@ export default function PropertySelectionPage() {
     if (selectedProps.length === 0) {
       toast({
         title: "No properties selected",
-        description: "Please select at least one property to withdraw the request.",
+        description: "Please select at least one property to withdraw the viewing request.",
         variant: "destructive",
       })
       return
     }
 
-    // Remove selected properties from viewing requested
+    const updatedSelected = selectedProps.map((prop) => ({
+      ...prop,
+      buyerStatus: "archived",
+      viewingStatus: undefined,
+    })) as BuyerProperty
+
+    setArchivedProperties((prev) => [...prev, ...updatedSelected])
+
+    // Remove from viewing requested
     setViewingRequested((prev) => prev.filter((prop) => !selectedViewingRequestedProperties.includes(prop.id)))
 
     // Reset selection state
@@ -574,336 +578,334 @@ export default function PropertySelectionPage() {
   }
 
   return (
-    <div>
-      <div className="container mx-auto">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left Column - Main Content */}
-          <div className="w-full md:w-2/3">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold mb-1">Property Pre-Selection & Status</h1>
-              <p className="text-gray-600">Manage your property journey from saved listings to offers</p>
-            </div>
-
-            <Tabs defaultValue="saved" onValueChange={setActiveSection}>
-              <TabsList className="mb-4 w-full grid grid-cols-3 md:grid-cols-6">
-                <TabsTrigger value="saved" className="text-xs md:text-sm">
-                  Saved ({savedProperties.length})
-                </TabsTrigger>
-                <TabsTrigger value="viewingRequested" className="text-xs md:text-sm">
-                  Requested ({viewingRequested.length})
-                </TabsTrigger>
-                <TabsTrigger value="viewingScheduled" className="text-xs md:text-sm">
-                  Scheduled ({viewingScheduled.length})
-                </TabsTrigger>
-                <TabsTrigger value="viewed" className="text-xs md:text-sm">
-                  Viewed ({propertiesViewed.length})
-                </TabsTrigger>
-                <TabsTrigger value="offerSubmitted" className="text-xs md:text-sm">
-                  Pre-Offer ({offerSubmitted.length})
-                </TabsTrigger>
-                <TabsTrigger value="archived" className="text-xs md:text-sm">
-                  Archived ({archivedProperties.length})
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="saved">
-                <div className="mb-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Properties of Interest</h2>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="accent"
-                      size="sm"
-                      disabled={selectedSavedProperties.length === 0}
-                      onClick={handleScheduleInPersonTour}
-                    >
-                      Schedule In-Person Tour
-                    </Button>
-                  </div>
-                </div>
-
-                {savedProperties.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500 mb-4">You haven't saved any properties yet.</p>
-                    <Button onClick={() => router.push("/dashboard/property-search")} variant="outline">
-                      Go to Property Search
-                    </Button>
-                  </Card>
-                ) : (
-                  <div>
-                    {savedProperties.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        section="saved"
-                        onToggleSelection={handleToggleSelection}
-                        onArchive={archiveProperty}
-                        onRequestAnalysis={requestPropertyAnalysis}
-                        onRequestVirtualTour={requestVirtualTour}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="viewingRequested">
-                <div className="mb-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Viewings Requested</h2>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={selectedViewingRequestedProperties.length === 0}
-                      onClick={handleMarkScheduled}
-                    >
-                      Mark Scheduled
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={selectedViewingRequestedProperties.length === 0}
-                      onClick={handleWithdrawRequest}
-                    >
-                      Withdraw Request
-                    </Button>
-                  </div>
-                </div>
-
-                {viewingRequested.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500">You haven't requested any viewings yet.</p>
-                  </Card>
-                ) : (
-                  <div>
-                    {viewingRequested.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        section="viewingRequested"
-                        onToggleSelection={handleToggleSelection}
-                        onArchive={archiveProperty}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="viewingScheduled">
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold">Viewings Scheduled</h2>
-                </div>
-
-                {viewingScheduled.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500">You don't have any scheduled viewings yet.</p>
-                  </Card>
-                ) : (
-                  <div>
-                    {viewingScheduled.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        section="viewingScheduled"
-                        onArchive={archiveProperty}
-                        onMarkAsViewed={markAsViewed}
-                        onUpdateNotes={updateBuyerNotes}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="viewed">
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold">Properties Viewed</h2>
-                </div>
-
-                {propertiesViewed.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500">You haven't viewed any properties yet.</p>
-                  </Card>
-                ) : (
-                  <div>
-                    {propertiesViewed.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        section="viewed"
-                        onArchive={archiveProperty}
-                        onRequestVirtualTour={requestVirtualTour}
-                        onUpdateNotes={updateBuyerNotes}
-                        onSubmitOffer={submitOffer}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="offerSubmitted">
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold">Pre-Offer</h2>
-                </div>
-
-                {offerSubmitted.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500">You haven't submitted any offers yet.</p>
-                  </Card>
-                ) : (
-                  <div>
-                    {offerSubmitted.map((property) => (
-                      <PropertyCard
-                        key={property.id}
-                        property={property}
-                        section="offerSubmitted"
-                        onArchive={archiveProperty}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="archived">
-                <div className="mb-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Archived Properties</h2>
-                  <div className="flex items-center">
-                    <Checkbox
-                      id="showActive"
-                      checked={showOnlyActive}
-                      onCheckedChange={(checked) => setShowOnlyActive(!!checked)}
-                    />
-                    <label htmlFor="showActive" className="ml-2 text-sm">
-                      Only show active listings
-                    </label>
-                  </div>
-                </div>
-
-                {archivedProperties.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <p className="text-gray-500">You don't have any archived properties.</p>
-                  </Card>
-                ) : (
-                  <div>
-                    {archivedProperties
-                      .filter((property) => !showOnlyActive || property.status === "active")
-                      .map((property) => (
-                        <PropertyCard
-                          key={property.id}
-                          property={property}
-                          section="archived"
-                          onRestore={restoreProperty}
-                        />
-                      ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+    <div className="container mx-auto">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Left Column - Main Content */}
+        <div className="w-full md:w-2/3">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-1">Property Pre-Selection & Status</h1>
+            <p className="text-gray-600">Manage your property journey from saved listings to offers</p>
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="w-full md:w-1/3">
-            {/* Educational Resources */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Educational Resources
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible>
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger>How to evaluate a property</AccordionTrigger>
-                    <AccordionContent>
-                      <p className="text-sm text-gray-600">
-                        When evaluating a property, consider location, condition, price comparison, and potential for
-                        appreciation. Always inspect the property thoroughly and review all disclosures.
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger>What's in a disclosure?</AccordionTrigger>
-                    <AccordionContent>
-                      <p className="text-sm text-gray-600">
-                        Property disclosures typically include information about known defects, repairs, renovations,
-                        and potential issues like flooding or pest problems. Always read these documents carefully.
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger>Tips for submitting a strong offer</AccordionTrigger>
-                    <AccordionContent>
-                      <p className="text-sm text-gray-600">
-                        A strong offer includes a competitive price, minimal contingencies, proof of financing, and a
-                        personalized letter to the seller. Work with your realtor to craft the best strategy for the
-                        current market.
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="saved" onValueChange={setActiveSection}>
+            <TabsList className="mb-4 w-full grid grid-cols-3 md:grid-cols-6">
+              <TabsTrigger value="saved" className="text-xs md:text-sm">
+                Saved ({savedProperties.length})
+              </TabsTrigger>
+              <TabsTrigger value="viewingRequested" className="text-xs md:text-sm">
+                Requested ({viewingRequested.length})
+              </TabsTrigger>
+              <TabsTrigger value="viewingScheduled" className="text-xs md:text-sm">
+                Scheduled ({viewingScheduled.length})
+              </TabsTrigger>
+              <TabsTrigger value="viewed" className="text-xs md:text-sm">
+                Viewed ({propertiesViewed.length})
+              </TabsTrigger>
+              <TabsTrigger value="offerSubmitted" className="text-xs md:text-sm">
+                Pre-Offer ({offerSubmitted.length})
+              </TabsTrigger>
+              <TabsTrigger value="archived" className="text-xs md:text-sm">
+                Archived ({archivedProperties.length})
+              </TabsTrigger>
+            </TabsList>
 
-            {/* AI Assistant */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Ask Our AI Assistant
-                </CardTitle>
-                <CardDescription>Get instant answers to your home buying questions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 rounded-md p-3 mb-3 h-32 overflow-y-auto">
-                  <p className="text-sm text-gray-600">
-                    Hello! I'm your AI assistant. How can I help with your home buying journey today?
-                  </p>
-                </div>
-
-                <div className="flex gap-2 mb-3">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    What are the key factors in selecting a property?
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    How do I determine the right offer price?
-                  </Button>
-                </div>
-
+            <TabsContent value="saved">
+              <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Properties of Interest</h2>
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="Ask a question..."
-                    value={aiMessage}
-                    onChange={(e) => setAiMessage(e.target.value)}
-                  />
-                  <Button onClick={sendAiMessage}>
-                    <Send className="h-4 w-4" />
+                  <Button
+                    variant="accent"
+                    size="sm"
+                    disabled={selectedSavedProperties.length === 0}
+                    onClick={handleScheduleInPersonTour}
+                  >
+                    Schedule In-Person Tour
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Message Your Realtor */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MessageSquare className="h-5 w-5 mr-2" />
-                  Message Your Realtor
-                </CardTitle>
-                <CardDescription>Have questions? Your realtor is here to help</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Type your message here..."
-                  value={realtorMessage}
-                  onChange={(e) => setRealtorMessage(e.target.value)}
-                  className="mb-3"
-                  rows={4}
-                />
-                <Button onClick={sendRealtorMessage} className="w-full" variant="accent">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Message
+              {savedProperties.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500 mb-4">You haven't saved any properties yet.</p>
+                  <Button onClick={() => router.push("/dashboard/property-search")} variant="outline">
+                    Go to Property Search
+                  </Button>
+                </Card>
+              ) : (
+                <div>
+                  {savedProperties.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      section="saved"
+                      onToggleSelection={handleToggleSelection}
+                      onArchive={archiveProperty}
+                      onRequestAnalysis={requestPropertyAnalysis}
+                      onRequestVirtualTour={requestVirtualTour}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="viewingRequested">
+              <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Viewings Requested</h2>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedViewingRequestedProperties.length === 0}
+                    onClick={handleMarkScheduled}
+                  >
+                    Mark Scheduled
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedViewingRequestedProperties.length === 0}
+                    onClick={handleWithdrawRequest}
+                  >
+                    Withdraw Request
+                  </Button>
+                </div>
+              </div>
+
+              {viewingRequested.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500">You haven't requested any viewings yet.</p>
+                </Card>
+              ) : (
+                <div>
+                  {viewingRequested.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      section="viewingRequested"
+                      onToggleSelection={handleToggleSelection}
+                      onArchive={archiveProperty}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="viewingScheduled">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold">Viewings Scheduled</h2>
+              </div>
+
+              {viewingScheduled.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500">You don't have any scheduled viewings yet.</p>
+                </Card>
+              ) : (
+                <div>
+                  {viewingScheduled.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      section="viewingScheduled"
+                      onArchive={archiveProperty}
+                      onMarkAsViewed={markAsViewed}
+                      onUpdateNotes={updateBuyerNotes}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="viewed">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold">Properties Viewed</h2>
+              </div>
+
+              {propertiesViewed.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500">You haven't viewed any properties yet.</p>
+                </Card>
+              ) : (
+                <div>
+                  {propertiesViewed.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      section="viewed"
+                      onArchive={archiveProperty}
+                      onRequestVirtualTour={requestVirtualTour}
+                      onUpdateNotes={updateBuyerNotes}
+                      onSubmitOffer={submitOffer}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="offerSubmitted">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold">Pre-Offer</h2>
+              </div>
+
+              {offerSubmitted.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500">You haven't submitted any offers yet.</p>
+                </Card>
+              ) : (
+                <div>
+                  {offerSubmitted.map((property) => (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      section="offerSubmitted"
+                      onArchive={archiveProperty}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="archived">
+              <div className="mb-4 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Archived Properties</h2>
+                <div className="flex items-center">
+                  <Checkbox
+                    id="showActive"
+                    checked={showOnlyActive}
+                    onCheckedChange={(checked) => setShowOnlyActive(!!checked)}
+                  />
+                  <label htmlFor="showActive" className="ml-2 text-sm">
+                    Only show active listings
+                  </label>
+                </div>
+              </div>
+
+              {archivedProperties.length === 0 ? (
+                <Card className="p-6 text-center">
+                  <p className="text-gray-500">You don't have any archived properties.</p>
+                </Card>
+              ) : (
+                <div>
+                  {archivedProperties
+                    .filter((property) => !showOnlyActive || property.status === "active")
+                    .map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        section="archived"
+                        onRestore={restoreProperty}
+                      />
+                    ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Right Column - Sidebar */}
+        <div className="w-full md:w-1/3">
+          {/* Educational Resources */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Educational Resources
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="item-1">
+                  <AccordionTrigger>How to evaluate a property</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-gray-600">
+                      When evaluating a property, consider location, condition, price comparison, and potential for
+                      appreciation. Always inspect the property thoroughly and review all disclosures.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                  <AccordionTrigger>What's in a disclosure?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-gray-600">
+                      Property disclosures typically include information about known defects, repairs, renovations, and
+                      potential issues like flooding or pest problems. Always read these documents carefully.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3">
+                  <AccordionTrigger>Tips for submitting a strong offer</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-gray-600">
+                      A strong offer includes a competitive price, minimal contingencies, proof of financing, and a
+                      personalized letter to the seller. Work with your realtor to craft the best strategy for the
+                      current market.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+
+          {/* AI Assistant */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Ask Our AI Assistant
+              </CardTitle>
+              <CardDescription>Get instant answers to your home buying questions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-50 rounded-md p-3 mb-3 h-32 overflow-y-auto">
+                <p className="text-sm text-gray-600">
+                  Hello! I'm your AI assistant. How can I help with your home buying journey today?
+                </p>
+              </div>
+
+              <div className="flex gap-2 mb-3">
+                <Button variant="outline" size="sm" className="text-xs">
+                  What are the key factors in selecting a property?
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
+                <Button variant="outline" size="sm" className="text-xs">
+                  How do I determine the right offer price?
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ask a question..."
+                  value={aiMessage}
+                  onChange={(e) => setAiMessage(e.target.value)}
+                />
+                <Button onClick={sendAiMessage}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Message Your Realtor */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MessageSquare className="h-5 w-5 mr-2" />
+                Message Your Realtor
+              </CardTitle>
+              <CardDescription>Have questions? Your realtor is here to help</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Type your message here..."
+                value={realtorMessage}
+                onChange={(e) => setRealtorMessage(e.target.value)}
+                className="mb-3"
+                rows={4}
+              />
+              <Button onClick={sendRealtorMessage} className="w-full" variant="accent">
+                <Send className="h-4 w-4 mr-2" />
+                Send Message
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
