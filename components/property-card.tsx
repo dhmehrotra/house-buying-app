@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import { memo } from "react"
 import Image from "next/image"
 import { Calendar, CheckCircle, Eye, FileText, Send, Trash2, Video, BarChart } from "lucide-react"
@@ -10,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { usePropertyStateStore } from "@/app/dashboard/property-pre-selection/property-state-store"
+import { useToast } from "@/components/ui/use-toast" // Import useToast
 
 // Property type definition
 export type Property = {
@@ -101,6 +104,8 @@ export const PropertyCard = memo(function PropertyCard({
   const isSelected = selectedMap.get(property.id) || false
   const isAnalysisRequested = analysisRequestedMap.get(property.id) || false
   const isVirtualTourRequested = virtualTourRequestedMap.get(property.id) || false
+  const [showOfferMovedNotice, setShowOfferMovedNotice] = useState(false)
+  const { toast } = useToast() // Get toast function
 
   // Handle selection toggle
   const handleToggleSelection = () => {
@@ -118,6 +123,16 @@ export const PropertyCard = memo(function PropertyCard({
   const handleRequestVirtualTour = () => {
     setVirtualTourRequested(property.id, true)
     if (onRequestVirtualTour) onRequestVirtualTour(property.id)
+  }
+
+  const handleProceedToOffer = () => {
+    setShowOfferMovedNotice(true)
+    onSubmitOffer?.(property.id)
+    toast({
+      title: "Property Moved",
+      description:
+        "This property has been moved to the Offer & Negotiation Step. Please proceed to the next phase to continue.",
+    })
   }
 
   return (
@@ -307,7 +322,14 @@ export const PropertyCard = memo(function PropertyCard({
                   variant="outline"
                   size="sm"
                   className="flex items-center rounded shadow-sm"
-                  onClick={() => onSubmitOffer && onSubmitOffer(property.id)}
+                  onClick={() => {
+                    onSubmitOffer && onSubmitOffer(property.id)
+                    toast({
+                      title: "Property Moved",
+                      description:
+                        "This property has been moved to the Offer & Negotiation Step. Please proceed to the next phase to continue.",
+                    })
+                  }}
                 >
                   Consider for Offer
                   <Send className="h-4 w-4 mr-1" />
